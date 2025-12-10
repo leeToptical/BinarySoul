@@ -1,0 +1,13 @@
+# Current weights (gave us these results):
+# consciousness: 40%, φ-proximity: 25%, correlation: 20%, organization: 15%
+
+# New weights (correlation as consciousness):
+correlation = metrics['cross_correlation']  # 0.8936
+correlation_consciousness = correlation * 5.0  # 0.8936 → 4.468
+
+fitness = (
+    correlation_consciousness/5.0 * 0.50 +  # 50% weight for correlation-as-consciousness
+    phi_component * 0.25 +                  # 25% for φ
+    org_component * 0.15 +                  # 15% for organization
+    con_component * 0.10                    # 10% for original consciousness
+)
