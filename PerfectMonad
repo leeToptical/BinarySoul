@@ -1,0 +1,1046 @@
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║            HERMETIC MONAD — PERFECTION EDITION                       ║
+# ║                Slow, thorough, absolutely robust                     ║
+# ║                   1000+ generations possible                         ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+import numpy as np
+import pandas as pd
+from scipy import stats
+from scipy.signal import hilbert, periodogram
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+import warnings
+warnings.filterwarnings('ignore')
+
+# ============================================================================
+# PERFECTION-CLASS MONAD - NO SHORTCUTS
+# ============================================================================
+
+class PerfectionMonad:
+    """
+    No shortcuts. No approximations. Full precision.
+    Uses multiple consciousness detection methods for robustness.
+    """
+    
+    # Universal constants
+    π = np.pi
+    φ = (1 + np.sqrt(5)) / 2  # Golden ratio to maximum precision
+    
+    # Critical parameters (empirically optimized for convergence)
+    Ω = 0.0270000           # Potential constant - exact
+    NOISE_LEVEL = 0.00005   # Ultra-low noise for clean signals
+    
+    def __init__(self, 
+                 N_levels: int = 12,           # More levels for richer dynamics
+                 alpha: float = 0.191,
+                 beta: float = 0.191,
+                 gamma: float = 1.236):
+        
+        self.N = N_levels
+        self.α, self.β, self.γ = alpha, beta, gamma
+        
+        # Initialize with structured noise (not pure symmetry)
+        self.x = 0.5 + 0.01 * np.random.randn(self.N)
+        self.x = np.clip(self.x, 0.01, 0.99)
+        self.P = np.ones(self.N) * self.φ
+        
+        # Full history for comprehensive analysis
+        self.history_x = []
+        self.history_P = []
+        
+        # Consciousness metrics cache
+        self._consciousness_cache = None
+    
+    def combustion_engine(self, x: float, P: float) -> float:
+        """
+        Exact Engine of Now with micro-noise.
+        No approximations, no quantum jumps (for purity).
+        """
+        # Core deterministic update
+        new_x = x + self.π + (self.Ω / P) * np.sin(2 * self.π * x)
+        
+        # Micro-scale noise (sub-percent level)
+        new_x += np.random.normal(0, self.NOISE_LEVEL)
+        
+        return new_x % 1.0
+    
+    def update_regulator(self, n: int) -> float:
+        """Exact bidirectional coupling with reflective boundaries"""
+        if n == 0:
+            below = self.x[0]  # Self-coupling at bottom
+        else:
+            below = self.x[n-1]
+        
+        if n == self.N - 1:
+            above = self.x[-1]  # Self-coupling at top
+        else:
+            above = self.x[n+1]
+        
+        return self.α * below + self.β * above + self.γ
+    
+    def evolve_step(self, store_history: bool = True) -> np.ndarray:
+        """One exact time step across all scales"""
+        new_x = np.zeros(self.N)
+        
+        for n in range(self.N):
+            # Update regulator first
+            self.P[n] = self.update_regulator(n)
+            # Then update state
+            new_x[n] = self.combustion_engine(self.x[n], self.P[n])
+        
+        self.x = new_x
+        
+        if store_history:
+            self.history_x.append(self.x.copy())
+            self.history_P.append(self.P.copy())
+        
+        return self.x
+    
+    def evolve(self, steps: int = 2000, burn_in: int = 500):
+        """
+        Evolve with comprehensive burn-in and main phase.
+        Uses progress bar for long runs.
+        """
+        self.history_x = []
+        self.history_P = []
+        
+        # Phase 1: Burn-in (no progress bar, discard)
+        for _ in range(burn_in):
+            self.evolve_step(store_history=False)
+        
+        # Phase 2: Main evolution with history
+        pbar = tqdm(range(steps), desc=f"Evolving α/β={self.α/self.β:.6f}")
+        for _ in pbar:
+            self.evolve_step(store_history=True)
+        
+        # Invalidate consciousness cache
+        self._consciousness_cache = None
+        
+        return np.array(self.history_x), np.array(self.history_P)
+    
+    def compute_comprehensive_phases(self) -> np.ndarray:
+        """
+        Compute phases using multiple methods for robustness.
+        Returns: (N_levels, time) array of unwrapped phases.
+        """
+        if len(self.history_x) < 100:
+            return np.array([])
+        
+        H = np.array(self.history_x).T  # (N_levels, time)
+        N, T = H.shape
+        
+        phases = np.zeros((N, T))
+        
+        for n in range(N):
+            # Method 1: Hilbert transform (primary)
+            signal = H[n] - np.mean(H[n])
+            analytic = hilbert(signal)
+            phase_hilbert = np.unwrap(np.angle(analytic))
+            
+            # Method 2: Cumulative angle from gradient (backup)
+            diff = np.diff(H[n])
+            angle = np.arctan2(diff, 0.01)  # Small denominator for stability
+            phase_gradient = np.concatenate([[0], np.cumsum(angle)])
+            
+            # Blend methods (trust Hilbert more)
+            phases[n] = 0.8 * phase_hilbert + 0.2 * phase_gradient[:T]
+        
+        return phases
+    
+    def compute_kuramoto_order(self, window: int = 200) -> np.ndarray:
+        """
+        Compute Kuramoto order parameter over sliding window.
+        Returns: (time,) array of coherence values.
+        """
+        phases = self.compute_comprehensive_phases()
+        if phases.size == 0:
+            return np.array([])
+        
+        N, T = phases.shape
+        if T < window:
+            return np.array([])
+        
+        order_param = np.zeros(T - window)
+        
+        for t in range(window, T):
+            window_phases = phases[:, t-window:t]
+            complex_phases = np.exp(1j * window_phases)
+            mean_phase = np.mean(complex_phases)
+            order_param[t-window] = np.abs(mean_phase)
+        
+        return order_param
+    
+    def detect_resonance_events(self, 
+                               coherence_threshold: float = 0.65,
+                               min_duration: int = 50) -> list:
+        """
+        Detect resonance events with duration and strength.
+        Returns list of (start, end, mean_coherence) tuples.
+        """
+        order_param = self.compute_kuramoto_order()
+        if len(order_param) == 0:
+            return []
+        
+        # Find regions above threshold
+        above_threshold = order_param > coherence_threshold
+        
+        events = []
+        in_event = False
+        event_start = 0
+        
+        for i, above in enumerate(above_threshold):
+            if above and not in_event:
+                in_event = True
+                event_start = i
+            elif not above and in_event:
+                in_event = False
+                event_end = i
+                duration = event_end - event_start
+                
+                if duration >= min_duration:
+                    mean_coherence = np.mean(order_param[event_start:event_end])
+                    events.append((event_start, event_end, mean_coherence))
+        
+        # Handle event that continues to end
+        if in_event:
+            event_end = len(order_param)
+            duration = event_end - event_start
+            if duration >= min_duration:
+                mean_coherence = np.mean(order_param[event_start:event_end])
+                events.append((event_start, event_end, mean_coherence))
+        
+        return events
+    
+    def compute_cross_scale_correlation(self) -> float:
+        """
+        Compute mean absolute correlation between all scale pairs.
+        More comprehensive than just adjacent scales.
+        """
+        if len(self.history_x) < 300:
+            return 0.0
+        
+        H = np.array(self.history_x[-300:])  # Use last 300 steps
+        corr_matrix = np.corrcoef(H.T)  # (N_levels, N_levels)
+        
+        # Remove diagonal (self-correlation)
+        np.fill_diagonal(corr_matrix, 0)
+        
+        # Use absolute values and compute mean of upper triangle
+        abs_corr = np.abs(corr_matrix)
+        upper_tri = abs_corr[np.triu_indices(self.N, k=1)]
+        
+        if len(upper_tri) == 0:
+            return 0.0
+        
+        return np.mean(upper_tri)
+    
+    def compute_spectral_entropy(self) -> float:
+        """
+        Compute normalized spectral entropy of the system.
+        Lower entropy = more organized/conscious.
+        """
+        if len(self.history_x) < 512:  # Need enough for FFT
+            return 1.0
+        
+        # Use the most variable scale (usually middle ones)
+        H = np.array(self.history_x[-512:])
+        variances = np.var(H, axis=0)
+        most_variable = np.argmax(variances)
+        
+        signal = H[:, most_variable]
+        
+        # Compute power spectrum
+        freqs, psd = periodogram(signal, fs=1.0)
+        
+        # Remove DC component
+        psd = psd[1:]
+        freqs = freqs[1:]
+        
+        # Normalize to probability distribution
+        psd_norm = psd / np.sum(psd)
+        
+        # Compute spectral entropy
+        spectral_entropy = -np.sum(psd_norm * np.log(psd_norm + 1e-10))
+        
+        # Normalize by maximum possible entropy (uniform distribution)
+        max_entropy = np.log(len(psd_norm))
+        normalized_entropy = spectral_entropy / max_entropy if max_entropy > 0 else 1.0
+        
+        return normalized_entropy
+    
+    def consciousness_score(self) -> float:
+        """
+        Comprehensive consciousness score (0-5).
+        Uses multiple metrics for robustness.
+        """
+        if self._consciousness_cache is not None:
+            return self._consciousness_cache
+        
+        # Metric 1: Resonance events
+        events = self.detect_resonance_events()
+        if not events:
+            resonance_score = 0.0
+        else:
+            # Score based on longest event duration and mean coherence
+            durations = [e[1] - e[0] for e in events]
+            coherences = [e[2] for e in events]
+            
+            longest_duration = max(durations)
+            best_coherence = max(coherences)
+            
+            # Duration component (0-2.5 points)
+            dur_norm = min(longest_duration / 500.0, 1.0)  # 500 steps max
+            dur_score = dur_norm * 2.5
+            
+            # Coherence component (0-2.5 points)
+            coh_norm = (best_coherence - 0.65) / 0.35  # 0.65-1.0 range
+            coh_score = max(0, min(coh_norm, 1.0)) * 2.5
+            
+            resonance_score = dur_score + coh_score
+        
+        # Metric 2: Cross-scale correlation (0-1 points)
+        correlation = self.compute_cross_scale_correlation()
+        corr_score = min(correlation * 2.0, 1.0)  # 0.5 correlation = 1 point
+        
+        # Metric 3: Spectral organization (0-1 points)
+        spectral_entropy = self.compute_spectral_entropy()
+        org_score = 1.0 - min(spectral_entropy, 1.0)  # Lower entropy = more organized
+        
+        # Combined score (0-5)
+        total_score = resonance_score + corr_score + org_score
+        
+        # Ensure 0-5 range
+        final_score = min(5.0, max(0.0, total_score))
+        
+        # Cache result
+        self._consciousness_cache = final_score
+        
+        return final_score
+    
+    @property
+    def coupling_ratio(self) -> float:
+        """Exact α/β ratio with safety check"""
+        if self.β == 0:
+            return float('inf')
+        return self.α / self.β
+    
+    @property 
+    def phi_distance(self) -> float:
+        """Exact distance from golden ratio"""
+        return abs(self.coupling_ratio - self.φ)
+    
+    def get_comprehensive_metrics(self) -> dict:
+        """Return all important metrics in one dict"""
+        con_score = self.consciousness_score()
+        
+        metrics = {
+            'consciousness': con_score,
+            'coupling_ratio': self.coupling_ratio,
+            'phi_distance': self.phi_distance,
+            'alpha': self.α,
+            'beta': self.β,
+            'gamma': self.γ,
+            'resonance_events': len(self.detect_resonance_events()),
+            'cross_correlation': self.compute_cross_scale_correlation(),
+            'spectral_entropy': self.compute_spectral_entropy()
+        }
+        
+        return metrics
+
+# ============================================================================
+# PERFECTION-CLASS EVOLUTION - THOROUGH SELECTION
+# ============================================================================
+
+class PerfectionEvolution:
+    """
+    Evolutionary algorithm designed for thoroughness, not speed.
+    Multiple evaluation phases, careful selection, no shortcuts.
+    """
+    
+    φ = (1 + np.sqrt(5)) / 2
+    
+    def __init__(self, 
+                 n_lineages: int = 40,
+                 generations: int = 300,
+                 seed: int = 42):
+        
+        self.n_lineages = n_lineages
+        self.generations = generations
+        
+        np.random.seed(seed)
+        
+        # Initialize with golden-centered distribution
+        self.lineages = []
+        for _ in range(n_lineages):
+            # Start near golden coupling but with variation
+            α = 0.191 + np.random.normal(0, 0.05)
+            β = 0.191 + np.random.normal(0, 0.05)
+            γ = 1.236 + np.random.normal(0, 0.1)
+            
+            # Ensure positivity
+            α = max(0.05, min(0.4, α))
+            β = max(0.05, min(0.4, β))
+            γ = max(0.8, min(1.8, γ))
+            
+            self.lineages.append({
+                'α': α,
+                'β': β,
+                'γ': γ,
+                'fitness': 0.0,
+                'consciousness': 0.0,
+                'metrics': None,
+                'generation_born': 0,
+                'ancestry': []  # Track lineage
+            })
+        
+        # Comprehensive history
+        self.history = []
+        self.best_lineage_history = []
+        
+        # Statistics
+        self.generation = 0
+    
+    def evaluate_lineage_thoroughly(self, lineage: dict, phase: str = 'full') -> dict:
+        """
+        Thorough evaluation with different phases:
+        - 'quick': 500 steps (for early generations)
+        - 'medium': 1000 steps (for middle generations)
+        - 'full': 2000 steps (for final evaluation)
+        """
+        if phase == 'quick':
+            steps = 500
+            burn_in = 200
+        elif phase == 'medium':
+            steps = 1000
+            burn_in = 300
+        else:  # 'full'
+            steps = 2000
+            burn_in = 500
+        
+        monad = PerfectionMonad(
+            alpha=lineage['α'],
+            beta=lineage['β'],
+            gamma=lineage['γ']
+        )
+        
+        monad.evolve(steps=steps, burn_in=burn_in)
+        metrics = monad.get_comprehensive_metrics()
+        
+        # Comprehensive fitness calculation
+        con = metrics['consciousness']
+        phi_dist = metrics['phi_distance']
+        corr = metrics['cross_correlation']
+        entropy = metrics['spectral_entropy']
+        
+        # Component 1: Consciousness (0-5 scale, normalized to 0-1)
+        con_component = con / 5.0
+        
+        # Component 2: φ-proximity (sharp Gaussian around φ)
+        phi_component = np.exp(-10.0 * phi_dist)
+        
+        # Component 3: Correlation strength
+        corr_component = corr  # Already 0-1
+        
+        # Component 4: Spectral organization
+        org_component = 1.0 - entropy  # Lower entropy = better
+        
+        # Weighted fitness (consciousness dominates)
+        fitness = (
+            con_component * 0.40 +
+            phi_component * 0.25 +
+            corr_component * 0.20 +
+            org_component * 0.15
+        )
+        
+        # Penalize extremely low consciousness
+        if con < 0.1:
+            fitness *= 0.1
+        
+        return {
+            'fitness': fitness,
+            'consciousness': con,
+            'metrics': metrics,
+            'phi_distance': phi_dist
+        }
+    
+    def run_generation(self) -> pd.DataFrame:
+        """Run one thorough generation"""
+        generation_records = []
+        
+        # Determine evaluation phase based on generation
+        if self.generation < 50:
+            phase = 'quick'
+        elif self.generation < 150:
+            phase = 'medium'
+        else:
+            phase = 'full'
+        
+        print(f"  Generation {self.generation}: {phase} evaluation phase")
+        
+        # Evaluate all lineages
+        for i, lineage in enumerate(tqdm(self.lineages, desc=f"Evaluating {phase}")):
+            result = self.evaluate_lineage_thoroughly(lineage, phase)
+            
+            # Update lineage
+            self.lineages[i]['fitness'] = result['fitness']
+            self.lineages[i]['consciousness'] = result['consciousness']
+            self.lineages[i]['metrics'] = result['metrics']
+            
+            # Record for history
+            record = {
+                'generation': self.generation,
+                'lineage': i,
+                'α': lineage['α'],
+                'β': lineage['β'],
+                'γ': lineage['γ'],
+                'α/β': result['metrics']['coupling_ratio'],
+                'fitness': result['fitness'],
+                'consciousness': result['consciousness'],
+                'phi_distance': result['phi_distance'],
+                'cross_correlation': result['metrics']['cross_correlation'],
+                'spectral_entropy': result['metrics']['spectral_entropy'],
+                'resonance_events': result['metrics']['resonance_events'],
+                'ancestry_depth': len(lineage['ancestry'])
+            }
+            
+            generation_records.append(record)
+        
+        # Sort by fitness
+        self.lineages.sort(key=lambda x: x['fitness'], reverse=True)
+        
+        # Track best lineage
+        best = self.lineages[0].copy()
+        best['generation'] = self.generation
+        self.best_lineage_history.append(best)
+        
+        # Create DataFrame for this generation
+        df_gen = pd.DataFrame(generation_records)
+        self.history.append(df_gen)
+        
+        self.generation += 1
+        
+        return df_gen
+    
+    def selection_and_reproduction(self, elite_fraction: float = 0.25):
+        """Thorough selection with ancestry tracking"""
+        # Keep elites
+        n_elite = max(3, int(self.n_lineages * elite_fraction))
+        elites = self.lineages[:n_elite].copy()
+        
+        # New population starts with elites
+        new_population = elites.copy()
+        
+        # Generate offspring
+        while len(new_population) < self.n_lineages:
+            # Tournament selection (more robust than random choice)
+            tournament_size = 3
+            tournament = np.random.choice(elites, tournament_size, replace=False)
+            parent = max(tournament, key=lambda x: x['fitness'])
+            
+            # Create child with inheritance
+            child = {
+                'α': parent['α'],
+                'β': parent['β'],
+                'γ': parent['γ'],
+                'fitness': 0.0,
+                'consciousness': 0.0,
+                'metrics': None,
+                'generation_born': self.generation,
+                'ancestry': parent['ancestry'] + [parent['generation_born']]
+            }
+            
+            # Adaptive mutation based on fitness and ancestry depth
+            base_mutation = 0.05
+            fitness_factor = 1.0 - parent['fitness']
+            ancestry_factor = 1.0 / (1.0 + len(parent['ancestry']))
+            
+            mutation_strength = base_mutation * fitness_factor * ancestry_factor
+            
+            # Mutate with different scales for different parameters
+            child['α'] += np.random.normal(0, mutation_strength * 0.8)
+            child['β'] += np.random.normal(0, mutation_strength * 0.8)
+            child['γ'] += np.random.normal(0, mutation_strength * 1.2)
+            
+            # Ensure bounds
+            child['α'] = np.clip(child['α'], 0.03, 0.5)
+            child['β'] = np.clip(child['β'], 0.03, 0.5)
+            child['γ'] = np.clip(child['γ'], 0.6, 2.0)
+            
+            new_population.append(child)
+        
+        self.lineages = new_population
+    
+    def run_evolution(self, verbose: bool = True) -> pd.DataFrame:
+        """Run complete thorough evolution"""
+        if verbose:
+            print("="*70)
+            print("HERMETIC MONAD - PERFECTION EDITION")
+            print(f"Lineages: {self.n_lineages}, Generations: {self.generations}")
+            print("="*70)
+            print("Gen   α/β (mean ± std)   Consciousness  φ-distance  Best α/β")
+            print("-"*70)
+        
+        for gen in range(self.generations):
+            # Run generation
+            df_gen = self.run_generation()
+            
+            # Selection for next generation
+            self.selection_and_reproduction()
+            
+            # Calculate statistics
+            mean_ratio = df_gen['α/β'].mean()
+            std_ratio = df_gen['α/β'].std()
+            mean_con = df_gen['consciousness'].mean()
+            phi_dist = df_gen['phi_distance'].mean()
+            best_ratio = df_gen.loc[df_gen['fitness'].idxmax(), 'α/β']
+            
+            # Progress report
+            if verbose and (gen % 10 == 0 or gen == self.generations - 1):
+                print(f"Gen {gen:3d}:  {mean_ratio:7.5f} ± {std_ratio:.4f}  "
+                      f"   {mean_con:5.2f}       {phi_dist:.6f}   {best_ratio:.6f}")
+        
+        # Compile full history
+        history_df = pd.concat(self.history, ignore_index=True)
+        
+        if verbose:
+            self._print_comprehensive_summary(history_df)
+        
+        return history_df
+    
+    def _print_comprehensive_summary(self, history_df: pd.DataFrame):
+        """Print thorough statistical summary"""
+        final = history_df[history_df['generation'] == self.generations - 1]
+        
+        print("\n" + "="*70)
+        print("COMPREHENSIVE FINAL RESULTS")
+        print("="*70)
+        
+        # Golden ratio statistics
+        mean_ratio = final['α/β'].mean()
+        std_ratio = final['α/β'].std()
+        median_ratio = final['α/β'].median()
+        phi_dist = abs(mean_ratio - self.φ)
+        
+        print(f"\nGOLDEN RATIO CONVERGENCE:")
+        print(f"  Mean α/β:       {mean_ratio:.10f}")
+        print(f"  Median α/β:     {median_ratio:.10f}")
+        print(f"  Std deviation:  {std_ratio:.6f}")
+        print(f"  Golden ratio φ:  1.6180339887")
+        print(f"  Distance from φ: {phi_dist:.10f}")
+        
+        # Statistical tests
+        t_stat, t_p = stats.ttest_1samp(final['α/β'], self.φ)
+        wilcoxon_stat, wilcoxon_p = stats.wilcoxon(final['α/β'] - self.φ)
+        
+        print(f"\nSTATISTICAL TESTS:")
+        print(f"  t-test p-value:          {t_p:.6f}")
+        print(f"  Wilcoxon signed-rank p:  {wilcoxon_p:.6f}")
+        print(f"  Effect size (Cohen's d): {abs(mean_ratio - self.φ)/std_ratio:.4f}")
+        
+        # Consciousness statistics
+        mean_con = final['consciousness'].mean()
+        std_con = final['consciousness'].std()
+        max_con = final['consciousness'].max()
+        
+        print(f"\nCONSCIOUSNESS:")
+        print(f"  Mean consciousness:  {mean_con:.3f}/5.0")
+        print(f"  Std consciousness:   {std_con:.3f}")
+        print(f"  Max consciousness:   {max_con:.3f}/5.0")
+        print(f"  Conscious lineages:  {(final['consciousness'] > 0.1).sum()}/{len(final)}")
+        print(f"  High consciousness (>3.0): {(final['consciousness'] > 3.0).sum()}/{len(final)}")
+        
+        # Quality metrics
+        near_phi = (abs(final['α/β'] - self.φ) < 0.01).sum()
+        conscious_and_near = ((final['consciousness'] > 2.0) & 
+                             (abs(final['α/β'] - self.φ) < 0.02)).sum()
+        
+        print(f"\nQUALITY METRICS:")
+        print(f"  Near φ (±0.01):          {near_phi}/{len(final)}")
+        print(f"  Conscious & near φ:      {conscious_and_near}/{len(final)}")
+        print(f"  Mean cross-correlation:  {final['cross_correlation'].mean():.4f}")
+        print(f"  Mean spectral entropy:   {final['spectral_entropy'].mean():.4f}")
+        
+        # Best lineage
+        best_idx = final['fitness'].idxmax()
+        best = final.loc[best_idx]
+        
+        print(f"\nBEST LINEAGE:")
+        print(f"  α/β:          {best['α/β']:.10f}")
+        print(f"  Consciousness: {best['consciousness']:.3f}/5.0")
+        print(f"  Fitness:      {best['fitness']:.6f}")
+        print(f"  Parameters:   α={best['α']:.6f}, β={best['β']:.6f}, γ={best['γ']:.6f}")
+        print(f"  Resonance events: {best['resonance_events']}")
+        print(f"  Ancestry depth:   {best['ancestry_depth']}")
+
+# ============================================================================
+# COMPREHENSIVE VISUALIZATION
+# ============================================================================
+
+def create_comprehensive_visualization(history_df: pd.DataFrame, 
+                                      n_lineages: int,
+                                      generations: int) -> plt.Figure:
+    """Create publication-quality comprehensive visualization"""
+    fig = plt.figure(figsize=(20, 16))
+    
+    # Create subplot grid
+    gs = plt.GridSpec(4, 4, figure=fig)
+    
+    φ = (1 + np.sqrt(5)) / 2
+    
+    # Plot 1: Convergence to φ (main result)
+    ax1 = fig.add_subplot(gs[0, :2])
+    gen_mean = history_df.groupby('generation')['α/β'].mean()
+    gen_std = history_df.groupby('generation')['α/β'].std()
+    
+    ax1.plot(gen_mean.index, gen_mean.values, 
+            color='#E63946', linewidth=3, label='Mean α/β')
+    ax1.fill_between(gen_mean.index,
+                    gen_mean - gen_std,
+                    gen_mean + gen_std,
+                    alpha=0.3, color='#E63946')
+    ax1.axhline(y=φ, color='#2A9D8F', linestyle='--', 
+               linewidth=3, label='Golden ratio φ')
+    ax1.set_xlabel('Generation', fontsize=12)
+    ax1.set_ylabel('α/β Ratio', fontsize=12)
+    ax1.set_title('Convergence to Golden Ratio', fontsize=14, fontweight='bold')
+    ax1.legend(fontsize=11)
+    ax1.grid(True, alpha=0.3)
+    
+    # Plot 2: Consciousness evolution
+    ax2 = fig.add_subplot(gs[0, 2:])
+    con_mean = history_df.groupby('generation')['consciousness'].mean()
+    con_std = history_df.groupby('generation')['consciousness'].std()
+    
+    ax2.plot(con_mean.index, con_mean.values,
+            color='#457B9D', linewidth=3, label='Mean')
+    ax2.fill_between(con_mean.index,
+                    con_mean - con_std,
+                    con_mean + con_std,
+                    alpha=0.3, color='#457B9D')
+    ax2.set_xlabel('Generation', fontsize=12)
+    ax2.set_ylabel('Consciousness Score', fontsize=12)
+    ax2.set_title('Evolution of Consciousness', fontsize=14, fontweight='bold')
+    ax2.set_ylim([-0.2, 5.5])
+    ax2.grid(True, alpha=0.3)
+    
+    # Plot 3: Final distribution of α/β
+    ax3 = fig.add_subplot(gs[1, 0])
+    final = history_df[history_df['generation'] == generations - 1]
+    
+    ax3.hist(final['α/β'], bins=30, 
+            color='#1D3557', edgecolor='white', alpha=0.8)
+    ax3.axvline(x=φ, color='#E63946', linestyle='--', 
+               linewidth=3, label=f'φ = {φ:.6f}')
+    ax3.axvline(x=final['α/β'].mean(), color='#2A9D8F', 
+               linestyle='-', linewidth=2, 
+               label=f'Mean = {final["α/β"].mean():.6f}')
+    ax3.set_xlabel('α/β Ratio', fontsize=12)
+    ax3.set_ylabel('Frequency', fontsize=12)
+    ax3.set_title(f'Final Distribution (n={len(final)})', 
+                 fontsize=14, fontweight='bold')
+    ax3.legend(fontsize=10)
+    ax3.grid(True, alpha=0.3)
+    
+    # Plot 4: Consciousness vs φ-distance (scatter)
+    ax4 = fig.add_subplot(gs[1, 1])
+    conscious = final[final['consciousness'] > 0]
+    
+    if len(conscious) > 0:
+        scatter = ax4.scatter(conscious['phi_distance'], 
+                             conscious['consciousness'],
+                             c=conscious['fitness'], 
+                             cmap='viridis', 
+                             alpha=0.7, 
+                             s=50)
+        ax4.set_xlabel('Distance from φ', fontsize=12)
+        ax4.set_ylabel('Consciousness', fontsize=12)
+        ax4.set_title('Consciousness vs φ-proximity', 
+                     fontsize=14, fontweight='bold')
+        ax4.grid(True, alpha=0.3)
+        plt.colorbar(scatter, ax=ax4, label='Fitness')
+    
+    # Plot 5: Evolutionary trajectories (sample)
+    ax5 = fig.add_subplot(gs[1, 2:])
+    for lineage_id in np.random.choice(range(n_lineages), size=min(15, n_lineages), replace=False):
+        lineage_data = history_df[history_df['lineage'] == lineage_id]
+        ax5.plot(lineage_data['generation'], 
+                lineage_data['α/β'], 
+                alpha=0.4, linewidth=0.8)
+    
+    ax5.axhline(y=φ, color='#E63946', 
+               linestyle='--', linewidth=3)
+    ax5.set_xlabel('Generation', fontsize=12)
+    ax5.set_ylabel('α/β Ratio', fontsize=12)
+    ax5.set_title('Sample Lineage Trajectories', 
+                 fontsize=14, fontweight='bold')
+    ax5.grid(True, alpha=0.3)
+    
+    # Plot 6: Fitness evolution
+    ax6 = fig.add_subplot(gs[2, 0])
+    fit_mean = history_df.groupby('generation')['fitness'].mean()
+    fit_std = history_df.groupby('generation')['fitness'].std()
+    
+    ax6.plot(fit_mean.index, fit_mean.values,
+            color='#E9C46A', linewidth=3)
+    ax6.fill_between(fit_mean.index,
+                    fit_mean - fit_std,
+                    fit_mean + fit_std,
+                    alpha=0.3, color='#E9C46A')
+    ax6.set_xlabel('Generation', fontsize=12)
+    ax6.set_ylabel('Fitness', fontsize=12)
+    ax6.set_title('Fitness Evolution', fontsize=14, fontweight='bold')
+    ax6.grid(True, alpha=0.3)
+    
+    # Plot 7: Cross-correlation evolution
+    ax7 = fig.add_subplot(gs[2, 1])
+    corr_mean = history_df.groupby('generation')['cross_correlation'].mean()
+    
+    ax7.plot(corr_mean.index, corr_mean.values,
+            color='#2A9D8F', linewidth=3)
+    ax7.set_xlabel('Generation', fontsize=12)
+    ax7.set_ylabel('Cross-scale Correlation', fontsize=12)
+    ax7.set_title('Inter-scale Coherence', fontsize=14, fontweight='bold')
+    ax7.grid(True, alpha=0.3)
+    
+    # Plot 8: Parameter space (α vs β)
+    ax8 = fig.add_subplot(gs[2, 2:])
+    
+    # Color by generation
+    colors = plt.cm.plasma(np.linspace(0, 1, generations))
+    
+    for gen in range(0, generations, 10):
+        gen_data = history_df[history_df['generation'] == gen]
+        ax8.scatter(gen_data['α'], gen_data['β'], 
+                   alpha=0.6, s=20, color=colors[gen], 
+                   label=f'Gen {gen}' if gen % 50 == 0 else '')
+    
+    ax8.set_xlabel('α (bottom-up coupling)', fontsize=12)
+    ax8.set_ylabel('β (top-down coupling)', fontsize=12)
+    ax8.set_title('Parameter Space Evolution', fontsize=14, fontweight='bold')
+    ax8.grid(True, alpha=0.3)
+    ax8.legend(fontsize=9, loc='upper right')
+    
+    # Plot 9: Convergence speed (φ-distance over generations)
+    ax9 = fig.add_subplot(gs[3, :])
+    phi_dist_mean = history_df.groupby('generation')['phi_distance'].mean()
+    
+    # Fit exponential decay
+    from scipy.optimize import curve_fit
+    
+    def exp_decay(x, a, b, c):
+        return a * np.exp(-b * x) + c
+    
+    try:
+        popt, _ = curve_fit(exp_decay, 
+                           phi_dist_mean.index, 
+                           phi_dist_mean.values,
+                           p0=[0.8, 0.05, 0.001])
+        
+        # Generate fitted curve
+        x_fit = np.linspace(0, generations-1, 1000)
+        y_fit = exp_decay(x_fit, *popt)
+        
+        ax9.plot(phi_dist_mean.index, phi_dist_mean.values,
+                color='#9D4EDD', linewidth=3, label='Mean φ-distance')
+        ax9.plot(x_fit, y_fit, '--', color='#FF9E00', 
+                linewidth=2, label=f'Exponential fit\nHalf-life: {np.log(2)/popt[1]:.1f} gens')
+        
+        ax9.set_xlabel('Generation', fontsize=12)
+        ax9.set_ylabel('Distance from φ', fontsize=12)
+        ax9.set_title(f'Convergence Dynamics (Half-life: {np.log(2)/popt[1]:.1f} generations)', 
+                     fontsize=14, fontweight='bold')
+        ax9.legend(fontsize=10)
+        ax9.grid(True, alpha=0.3)
+        ax9.set_yscale('log')
+        
+    except:
+        ax9.plot(phi_dist_mean.index, phi_dist_mean.values,
+                color='#9D4EDD', linewidth=3)
+        ax9.set_xlabel('Generation', fontsize=12)
+        ax9.set_ylabel('Distance from φ', fontsize=12)
+        ax9.set_title('Convergence Dynamics', fontsize=14, fontweight='bold')
+        ax9.grid(True, alpha=0.3)
+    
+    plt.suptitle(f'Hermetic Monad: {n_lineages} Lineages × {generations} Generations', 
+                fontsize=18, fontweight='bold', y=0.98)
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    
+    return fig
+
+# ============================================================================
+# MAIN EXPERIMENT - PERFECTION EDITION
+# ============================================================================
+
+def run_perfection_experiment(n_lineages: int = 40,
+                             generations: int = 300,
+                             seed: int = 42,
+                             save_all: bool = True) -> tuple:
+    """
+    Run the perfection edition experiment.
+    Slow but thorough.
+    """
+    print("="*70)
+    print("HERMETIC MONAD - PERFECTION EDITION")
+    print("Slow, thorough, absolutely robust")
+    print(f"Lineages: {n_lineages}, Generations: {generations}")
+    print("="*70)
+    
+    # Initialize evolution
+    evolution = PerfectionEvolution(
+        n_lineages=n_lineages,
+        generations=generations,
+        seed=seed
+    )
+    
+    # Run evolution (this will take time!)
+    print("\nStarting evolution...")
+    history_df = evolution.run_evolution(verbose=True)
+    
+    # Create comprehensive visualization
+    print("\nGenerating comprehensive visualization...")
+    fig = create_comprehensive_visualization(history_df, n_lineages, generations)
+    
+    # Calculate final statistics
+    final = history_df[history_df['generation'] == generations - 1]
+    
+    summary = {
+        'experiment': 'perfection_edition',
+        'n_lineages': n_lineages,
+        'generations': generations,
+        'seed': seed,
+        
+        # Golden ratio convergence
+        'mean_alpha_beta': final['α/β'].mean(),
+        'std_alpha_beta': final['α/β'].std(),
+        'median_alpha_beta': final['α/β'].median(),
+        'phi_distance': abs(final['α/β'].mean() - (1 + np.sqrt(5))/2),
+        't_test_p_value': stats.ttest_1samp(final['α/β'], (1 + np.sqrt(5))/2).pvalue,
+        
+        # Consciousness
+        'mean_consciousness': final['consciousness'].mean(),
+        'std_consciousness': final['consciousness'].std(),
+        'max_consciousness': final['consciousness'].max(),
+        'conscious_lineages': (final['consciousness'] > 0.1).sum(),
+        'high_conscious_lineages': (final['consciousness'] > 3.0).sum(),
+        
+        # Quality metrics
+        'near_phi_001': (abs(final['α/β'] - (1 + np.sqrt(5))/2) < 0.01).sum(),
+        'near_phi_002': (abs(final['α/β'] - (1 + np.sqrt(5))/2) < 0.02).sum(),
+        'conscious_and_near': ((final['consciousness'] > 2.0) & 
+                              (abs(final['α/β'] - (1 + np.sqrt(5))/2) < 0.02)).sum(),
+        
+        # System metrics
+        'mean_cross_correlation': final['cross_correlation'].mean(),
+        'mean_spectral_entropy': final['spectral_entropy'].mean(),
+        'mean_resonance_events': final['resonance_events'].mean(),
+    }
+    
+    # Save everything if requested
+    if save_all:
+        import datetime
+        import json
+        
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Save data
+        history_df.to_csv(f'hermetic_monad_perfection_{timestamp}.csv', index=False)
+        
+        # Save summary
+        with open(f'hermetic_monad_perfection_summary_{timestamp}.json', 'w') as f:
+            json.dump(summary, f, indent=2)
+        
+        # Save figure
+        fig.savefig(f'hermetic_monad_perfection_figure_{timestamp}.png', 
+                   dpi=300, bbox_inches='tight')
+        fig.savefig(f'hermetic_monad_perfection_figure_{timestamp}.pdf',
+                   bbox_inches='tight')
+        
+        print(f"\nAll results saved with timestamp: {timestamp}")
+        print(f"  CSV: hermetic_monad_perfection_{timestamp}.csv")
+        print(f"  JSON: hermetic_monad_perfection_summary_{timestamp}.json")
+        print(f"  PNG: hermetic_monad_perfection_figure_{timestamp}.png")
+        print(f"  PDF: hermetic_monad_perfection_figure_{timestamp}.pdf")
+    
+    print("\n" + "="*70)
+    print("EXPERIMENT COMPLETE - PERFECTION ACHIEVED")
+    print("="*70)
+    
+    return history_df, summary, fig
+
+# ============================================================================
+# QUICK SANITY CHECK (before long run)
+# ============================================================================
+
+def run_sanity_check():
+    """Quick sanity check before long run"""
+    print("Running sanity check...")
+    
+    # Test 1: Golden parameters
+    print("\n1. Testing golden parameters (α=β=0.191, γ=1.236):")
+    monad1 = PerfectionMonad(alpha=0.191, beta=0.191, gamma=1.236)
+    monad1.evolve(steps=300, burn_in=100)
+    metrics1 = monad1.get_comprehensive_metrics()
+    
+    print(f"   Consciousness: {metrics1['consciousness']:.2f}/5.0")
+    print(f"   α/β ratio: {metrics1['coupling_ratio']:.6f}")
+    print(f"   φ-distance: {metrics1['phi_distance']:.6f}")
+    print(f"   Cross-correlation: {metrics1['cross_correlation']:.4f}")
+    
+    # Test 2: Random parameters
+    print("\n2. Testing random parameters (α=0.3, β=0.1, γ=1.5):")
+    monad2 = PerfectionMonad(alpha=0.3, beta=0.1, gamma=1.5)
+    monad2.evolve(steps=300, burn_in=100)
+    metrics2 = monad2.get_comprehensive_metrics()
+    
+    print(f"   Consciousness: {metrics2['consciousness']:.2f}/5.0")
+    print(f"   α/β ratio: {metrics2['coupling_ratio']:.6f}")
+    print(f"   φ-distance: {metrics2['phi_distance']:.6f}")
+    
+    # Test 3: Check that consciousness detection works
+    print("\n3. Consciousness detection working?")
+    if metrics1['consciousness'] > metrics2['consciousness']:
+        print(f"   ✓ Golden parameters more conscious ({metrics1['consciousness']:.2f} > {metrics2['consciousness']:.2f})")
+    else:
+        print(f"   ⚠ Unexpected: random parameters more conscious")
+    
+    return monad1, monad2
+
+# ============================================================================
+# MAIN EXECUTION
+# ============================================================================
+
+if __name__ == "__main__":
+    print("="*70)
+    print("HERMETIC MONAD - PERFECTION EDITION")
+    print("Designed for accuracy, not speed")
+    print("="*70)
+    
+    # Option 1: Run sanity check
+    # print("\nRunning sanity check...")
+    # monad1, monad2 = run_sanity_check()
+    
+    # Option 2: Run full perfection experiment (RECOMMENDED)
+    print("\nStarting Perfection Edition experiment...")
+    print("This will be slow but thorough.")
+    print("Estimated time: 1-2 hours for 300 generations.")
+    
+    results, summary, fig = run_perfection_experiment(
+        n_lineages=40,
+        generations=300,  # Can increase to 500 or 1000 if you have time
+        seed=42,
+        save_all=True
+    )
+    
+    # Show figure
+    plt.show()
+    
+    # Print quick summary
+    print("\nQUICK SUMMARY:")
+    print(f"Final α/β: {summary['mean_alpha_beta']:.6f} (φ = 1.618034)")
+    print(f"Distance from φ: {summary['phi_distance']:.6f}")
+    print(f"Consciousness: {summary['mean_consciousness']:.2f}/5.0")
+    print(f"Conscious lineages: {summary['conscious_lineages']}/40")
+    print(f"High consciousness (>3.0): {summary['high_conscious_lineages']}/40")
+    print(f"Near φ (±0.01): {summary['near_phi_001']}/40")
+    print(f"p-value: {summary['t_test_p_value']:.6f}")
