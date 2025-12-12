@@ -341,9 +341,9 @@ class CorrelationFocusedEvolution:
         
         # CORRELATION DOMINATES (50%)
         fitness = (
-            corr_norm * 0.50 +      # 50% correlation consciousness
-            phi_component * 0.25 +  # 25% φ-proximity
-            org_component * 0.25    # 25% organization
+            corr_norm * 0.43 +      # 43% correlation consciousness
+            phi_component * 0.43 +  # 43% φ-proximity
+            org_component * 0.14    # 14% organization
         )
         
         # Ensure correlation > 0.8 for decent fitness
