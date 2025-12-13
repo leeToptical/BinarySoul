@@ -1,0 +1,1270 @@
+
+# HERMETIC MONAD: CONSCIOUSNESS AS CORRELATION
+# Integrated Analysis of φ-Attraction & Information Integration
+# ============================================================================
+
+import numpy as np
+import pandas as pd
+from scipy import stats, signal
+from scipy.signal import hilbert, periodogram, spectrogram
+import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
+from matplotlib.colors import LinearSegmentedColormap
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits.mplot3d import Axes3D
+import seaborn as sns
+from tqdm import tqdm
+import warnings
+warnings.filterwarnings('ignore')
+
+# Custom color maps
+cmap_gold = LinearSegmentedColormap.from_list('golden', ['#0f0f23', '#2a2a4a', '#4a4a7a', '#8a5a00', '#ffd700'])
+cmap_pulse = LinearSegmentedColormap.from_list('pulse', ['#000000', '#1a0033', '#4a0072', '#8a2be2', '#00ffff'])
+
+# Set style
+plt.style.use('dark_background')
+sns.set_palette("husl")
+
+# ============================================================================
+# OPTIMIZED LIVING MONAD
+# ============================================================================
+
+class OptimizedLivingMonad:
+    """Vectorized monad for faster computation"""
+
+    π = np.pi
+    φ = (1 + np.sqrt(5)) / 2
+    Ω = 0.0270000
+    NOISE_LEVEL = 0.0000415  # Canonical value
+
+    def __init__(self, N_levels=5, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
+
+        self.N = N_levels
+        self.α = 0.212575
+        self.β = 0.131406
+        self.γ = 1.194898
+
+        # Initialize with φ-centered values
+        self.x = 0.5 + 0.001 * np.random.randn(self.N)
+        self.x = np.clip(self.x, 0.01, 0.99)
+        self.P = self.φ * (1 + 0.001 * np.random.randn(self.N))
+
+        # History buffers (circular buffers for memory efficiency)
+        self.history_len = 2000
+        self.history_x = np.zeros((self.history_len, self.N))
+        self.history_idx = 0
+
+    def evolve_step(self, store=True):
+        """Vectorized evolution step"""
+        # Prepare neighbors for vectorized computation
+        below = np.roll(self.x, 1)
+        above = np.roll(self.x, -1)
+        below[0] = self.x[0]
+        above[-1] = self.x[-1]
+
+        # Update P vectorized
+        self.P = self.α * below + self.β * above + self.γ
+
+        # Update x vectorized
+        noise = np.random.normal(0, self.NOISE_LEVEL, self.N)
+        new_x = self.x + self.π + (self.Ω / self.P) * np.sin(2 * self.π * self.x) + noise
+        self.x = new_x % 1.0
+
+        # Store history
+        if store and self.history_idx < self.history_len:
+            self.history_x[self.history_idx] = self.x.copy()
+            self.history_idx += 1
+
+        return self.x
+
+    def evolve(self, steps=2000, burn_in=500):
+        """Evolve for given steps"""
+        # Burn-in without storage
+        for _ in range(burn_in):
+            self.evolve_step(store=False)
+
+        # Main evolution with storage
+        for i in range(steps):
+            self.evolve_step(store=True)
+
+        # Trim history if needed
+        if self.history_idx < steps:
+            self.history_x = self.history_x[:self.history_idx]
+        else:
+            self.history_x = self.history_x[:steps]
+
+        self.history_idx = steps
+
+    def compute_metrics(self, window=500):
+        """Compute all metrics efficiently"""
+        if self.history_idx < window:
+            return self._compute_basic_metrics()
+
+        H = self.history_x[-window:]  # Use last window steps
+
+        # 1. Correlation matrix
+        corr_matrix = np.corrcoef(H.T)
+        np.fill_diagonal(corr_matrix, 0)
+        mean_correlation = np.mean(np.abs(corr_matrix[np.triu_indices(self.N, k=1)]))
+
+        # 2. Consciousness score (from correlation)
+        if mean_correlation < 0.001:
+            consciousness = 0.0
+        elif mean_correlation < 0.3:
+            consciousness = mean_correlation * 2.0
+        elif mean_correlation < 0.6:
+            consciousness = 0.6 + (mean_correlation - 0.3) * 2.0
+        elif mean_correlation < 0.8:
+            consciousness = 1.2 + (mean_correlation - 0.6) * 4.0
+        elif mean_correlation < 0.85:
+            consciousness = 2.0 + (mean_correlation - 0.8) * 6.0
+        elif mean_correlation < 0.9:
+            consciousness = 2.3 + (mean_correlation - 0.85) * 10.0
+        elif mean_correlation < 0.95:
+            consciousness = 2.8 + (mean_correlation - 0.9) * 15.0
+        else:
+            consciousness = 3.55 + (mean_correlation - 0.95) * 29.0
+        consciousness = min(consciousness, 5.0)
+
+        # 3. Golden ratio metrics
+        coupling_ratio = self.α / self.β if self.β != 0 else float('inf')
+        phi_distance = abs(coupling_ratio - self.φ)
+        phi_proximity = np.exp(-8.0 * phi_distance)
+
+        # 4. Spectral entropy (most variable level)
+        variances = np.var(H, axis=0)
+        most_var = np.argmax(variances)
+        signal_ts = H[:, most_var]
+
+        freqs, psd = periodogram(signal_ts, fs=1.0)
+        psd = psd[1:]
+        psd_norm = psd / (np.sum(psd) + 1e-10)
+        psd_norm = np.clip(psd_norm, 1e-10, 1)
+
+        spectral_entropy = -np.sum(psd_norm * np.log(psd_norm))
+        max_entropy = np.log(len(psd_norm))
+        normalized_entropy = spectral_entropy / max_entropy if max_entropy > 0 else 1.0
+
+        # 5. Lyapunov exponent approximation
+        lyapunov = self._estimate_lyapunov(H)
+
+        # 6. Phase coherence (Kuramoto order parameter)
+        coherence = self._compute_coherence(H)
+
+        # 7. Fractal dimension approximation
+        fractal_dim = self._estimate_fractal_dim(signal_ts)
+
+        # 8. Mutual information matrix
+        mi_matrix = self._compute_mutual_information(H)
+
+        # 9. Integrated information (Φ) approximation
+        phi_integration = self._estimate_integrated_information(H, mi_matrix)
+
+        return {
+            'correlation': mean_correlation,
+            'consciousness': consciousness,
+            'coupling_ratio': coupling_ratio,
+            'phi_distance': phi_distance,
+            'phi_proximity': phi_proximity,
+            'spectral_entropy': normalized_entropy,
+            'organization': 1.0 - normalized_entropy,
+            'lyapunov': lyapunov,
+            'coherence': coherence,
+            'fractal_dim': fractal_dim,
+            'phi_integration': phi_integration,
+            'corr_matrix': corr_matrix,
+            'mi_matrix': mi_matrix,
+            'variances': variances,
+            'signal_ts': signal_ts,
+            'H': H
+        }
+
+    def _compute_basic_metrics(self):
+        """Fallback metrics if not enough history"""
+        return {
+            'correlation': 0.0,
+            'consciousness': 0.0,
+            'coupling_ratio': self.α / self.β if self.β != 0 else float('inf'),
+            'phi_distance': abs((self.α / self.β if self.β != 0 else float('inf')) - self.φ),
+            'phi_proximity': 0.0,
+            'spectral_entropy': 1.0,
+            'organization': 0.0,
+            'lyapunov': 0.0,
+            'coherence': 0.0,
+            'fractal_dim': 1.0,
+            'phi_integration': 0.0,
+            'corr_matrix': np.zeros((self.N, self.N)),
+            'mi_matrix': np.zeros((self.N, self.N)),
+            'variances': np.zeros(self.N),
+            'signal_ts': np.zeros(100),
+            'H': np.zeros((100, self.N))
+        }
+
+    def _estimate_lyapunov(self, H, steps=100):
+        """Estimate largest Lyapunov exponent"""
+        try:
+            # Small perturbation
+            perturbed = H.copy()
+            perturbed[0] += 0.0001
+
+            distances = []
+            for i in range(min(steps, len(H)-1)):
+                dist = np.mean(np.abs(H[i] - perturbed[i]))
+                distances.append(dist)
+                if i < len(H)-1:
+                    perturbed[i+1] = H[i+1] + (perturbed[i] - H[i])
+
+            if len(distances) > 1:
+                x = np.arange(len(distances))
+                mask = distances > 0
+                if np.any(mask):
+                    coeffs = np.polyfit(x[mask], np.log(distances[mask]), 1)
+                    return coeffs[0]
+        except:
+            pass
+        return 0.0
+
+    def _compute_coherence(self, H):
+        """Compute phase coherence using Hilbert transform"""
+        try:
+            phases = np.zeros((self.N, len(H)))
+            for n in range(self.N):
+                analytic = hilbert(H[:, n] - np.mean(H[:, n]))
+                phases[n] = np.unwrap(np.angle(analytic))
+
+            complex_phases = np.exp(1j * phases)
+            mean_complex = np.mean(complex_phases, axis=0)
+            order_param = np.abs(mean_complex)
+            return np.mean(order_param[-100:])
+        except:
+            return 0.0
+
+    def _estimate_fractal_dim(self, signal, scales=None):
+        """Estimate fractal dimension using box counting"""
+        try:
+            if scales is None:
+                scales = np.logspace(0.5, np.log10(len(signal)//10), 20, base=10)
+
+            counts = []
+            for scale in scales:
+                scale = int(scale)
+                if scale < 2:
+                    continue
+
+                # Box counting
+                n_boxes = int(np.ceil(len(signal) / scale))
+                boxes = np.zeros(n_boxes)
+
+                for i in range(n_boxes):
+                    start = i * scale
+                    end = min((i + 1) * scale, len(signal))
+                    boxes[i] = np.max(signal[start:end]) - np.min(signal[start:end])
+
+                counts.append(np.sum(boxes > 0))
+
+            if len(counts) > 3:
+                coeffs = np.polyfit(np.log(scales[:len(counts)]), np.log(counts), 1)
+                return -coeffs[0]
+        except:
+            pass
+        return 1.0
+
+    def _compute_mutual_information(self, H, bins=20):
+        """Compute mutual information between all pairs"""
+        N = self.N
+        mi_matrix = np.zeros((N, N))
+
+        for i in range(N):
+            for j in range(i+1, N):
+                hist2d, _, _ = np.histogram2d(H[:, i], H[:, j], bins=bins)
+                hist2d = hist2d / np.sum(hist2d)
+
+                hist_i = np.sum(hist2d, axis=1)
+                hist_j = np.sum(hist2d, axis=0)
+
+                # Mutual information
+                mi = 0.0
+                for a in range(bins):
+                    for b in range(bins):
+                        if hist2d[a, b] > 0:
+                            mi += hist2d[a, b] * np.log(hist2d[a, b] / (hist_i[a] * hist_j[b] + 1e-10))
+
+                mi_matrix[i, j] = mi
+                mi_matrix[j, i] = mi
+
+        return mi_matrix
+
+    def _estimate_integrated_information(self, H, mi_matrix):
+        """Estimate integrated information (Φ)"""
+        try:
+            # Total mutual information
+            total_mi = np.sum(mi_matrix) / 2.0
+
+            # Information in partitioned system (minimum information bipartition)
+            min_mip = float('inf')
+            N = self.N
+
+            for partition_size in range(1, N//2 + 1):
+                # This is simplified - in practice would need to check all partitions
+                partition_mi = np.sum(mi_matrix[:partition_size, partition_size:])
+                min_mip = min(min_mip, partition_mi)
+
+            phi = total_mi - min_mip if min_mip < float('inf') else 0.0
+            return phi
+        except:
+            return 0.0
+
+# ============================================================================
+# EVOLUTIONARY OPTIMIZATION
+# ============================================================================
+
+class ConsciousEvolution:
+    """Evolution with 0.43, 0.43, 0.14 weighting"""
+
+    φ = (1 + np.sqrt(5)) / 2
+
+    def __init__(self, pop_size=50, param_bounds=None, seed=42):
+        np.random.seed(seed)
+        self.pop_size = pop_size
+
+        if param_bounds is None:
+            param_bounds = {
+                'α': (0.15, 0.25),
+                'β': (0.10, 0.16),
+                'γ': (1.0, 1.4)
+            }
+
+        self.bounds = param_bounds
+
+        # Initialize population around successful values
+        self.population = []
+        for _ in range(pop_size):
+            α = 0.212575 + np.random.normal(0, 0.02)
+            β = 0.131406 + np.random.normal(0, 0.015)
+            γ = 1.194898 + np.random.normal(0, 0.03)
+
+            α = np.clip(α, *param_bounds['α'])
+            β = np.clip(β, *param_bounds['β'])
+            γ = np.clip(γ, *param_bounds['γ'])
+
+            self.population.append({
+                'α': α, 'β': β, 'γ': γ,
+                'fitness': 0.0,
+                'metrics': None,
+                'consciousness': 0.0,
+                'correlation': 0.0,
+                'phi_proximity': 0.0
+            })
+
+        self.history = []
+        self.generation = 0
+
+    def evaluate_individual(self, individual, quick=False):
+        """Evaluate with 0.43, 0.43, 0.14 weighting"""
+        steps = 1000 if quick else 2000
+        burn_in = 300 if quick else 500
+
+        monad = OptimizedLivingMonad(N_levels=5)
+        monad.α = individual['α']
+        monad.β = individual['β']
+        monad.γ = individual['γ']
+
+        monad.evolve(steps=steps, burn_in=burn_in)
+        metrics = monad.compute_metrics()
+
+        # Extract components
+        consciousness = metrics['consciousness'] / 5.0  # Normalize to 0-1
+        phi_proximity = metrics['phi_proximity']
+        organization = metrics['organization']
+
+        # Apply 0.43, 0.43, 0.14 weighting
+        fitness = (
+            consciousness * 0.43 +
+            phi_proximity * 0.43 +
+            organization * 0.14
+        )
+
+        # Bonus for systems with both high correlation AND near φ
+        if metrics['correlation'] > 0.85 and metrics['phi_distance'] < 0.01:
+            fitness *= 1.2
+
+        individual.update({
+            'fitness': fitness,
+            'metrics': metrics,
+            'consciousness': consciousness * 5.0,  # Back to 0-5 scale
+            'correlation': metrics['correlation'],
+            'phi_proximity': phi_proximity,
+            'phi_distance': metrics['phi_distance'],
+            'organization': organization,
+            'coherence': metrics['coherence'],
+            'lyapunov': metrics['lyapunov']
+        })
+
+        return individual
+
+    def run_generation(self, quick=False):
+        """Run one generation of evolution"""
+        print(f"Generation {self.generation}: Evaluating {self.pop_size} individuals...")
+
+        # Evaluate all individuals
+        for i in tqdm(range(self.pop_size), desc="Evaluating"):
+            self.population[i] = self.evaluate_individual(self.population[i], quick)
+
+        # Sort by fitness
+        self.population.sort(key=lambda x: x['fitness'], reverse=True)
+
+        # Record history
+        gen_data = []
+        for i, ind in enumerate(self.population):
+            gen_data.append({
+                'generation': self.generation,
+                'rank': i,
+                'α': ind['α'],
+                'β': ind['β'],
+                'γ': ind['γ'],
+                'α/β': ind['α'] / ind['β'],
+                'fitness': ind['fitness'],
+                'consciousness': ind['consciousness'],
+                'correlation': ind['correlation'],
+                'phi_distance': ind['phi_distance'],
+                'phi_proximity': ind['phi_proximity'],
+                'organization': ind['organization'],
+                'coherence': ind['coherence'],
+                'lyapunov': ind['lyapunov']
+            })
+
+        self.history.append(pd.DataFrame(gen_data))
+        self.generation += 1
+
+        return self.history[-1]
+
+    def create_next_generation(self, elite_frac=0.3, mutation_rate=0.1):
+        """Create next generation through selection and mutation"""
+        n_elite = max(3, int(self.pop_size * elite_frac))
+        elites = self.population[:n_elite]
+
+        new_pop = []
+
+        # Keep elites
+        for elite in elites:
+            new_pop.append(elite.copy())
+
+        # Create offspring
+        while len(new_pop) < self.pop_size:
+            # Tournament selection
+            candidates = np.random.choice(len(elites), 3, replace=False)
+            parent = elites[max(candidates, key=lambda i: elites[i]['fitness'])]
+
+            # Create child with mutation
+            child = {
+                'α': parent['α'] + np.random.normal(0, mutation_rate * 0.02),
+                'β': parent['β'] + np.random.normal(0, mutation_rate * 0.015),
+                'γ': parent['γ'] + np.random.normal(0, mutation_rate * 0.03),
+                'fitness': 0.0,
+                'metrics': None
+            }
+
+            # Apply bounds
+            child['α'] = np.clip(child['α'], *self.bounds['α'])
+            child['β'] = np.clip(child['β'], *self.bounds['β'])
+            child['γ'] = np.clip(child['γ'], *self.bounds['γ'])
+
+            # Occasionally apply φ-directed mutation
+            if np.random.random() < 0.3:
+                current_ratio = child['α'] / child['β']
+                if current_ratio < self.φ:
+                    child['α'] *= 1.005
+                    child['β'] *= 0.995
+                else:
+                    child['α'] *= 0.995
+                    child['β'] *= 1.005
+
+            new_pop.append(child)
+
+        self.population = new_pop
+
+    def run_evolution(self, generations=100):
+        """Run full evolutionary optimization"""
+        print("="*70)
+        print("HERMETIC MONAD EVOLUTION")
+        print(f"Population: {self.pop_size}, Generations: {generations}")
+        print(f"Fitness weights: 0.43 consciousness, 0.43 φ-proximity, 0.14 organization")
+        print("="*70)
+
+        for gen in range(generations):
+            # Adjust evaluation depth based on generation
+            quick = gen < 30  # Quick evaluation for early generations
+
+            df_gen = self.run_generation(quick=quick)
+
+            if gen % 10 == 0 or gen == generations - 1:
+                avg_fitness = df_gen['fitness'].mean()
+                avg_consciousness = df_gen['consciousness'].mean()
+                avg_correlation = df_gen['correlation'].mean()
+                avg_phi_dist = df_gen['phi_distance'].mean()
+
+                print(f"Gen {gen:3d}: Fit={avg_fitness:.4f}, Con={avg_consciousness:.2f}, "
+                      f"Corr={avg_correlation:.4f}, φ-dist={avg_phi_dist:.6f}")
+
+            if gen < generations - 1:
+                # Gradually reduce mutation rate
+                mutation_rate = max(0.05, 0.2 * (1 - gen/generations))
+                self.create_next_generation(mutation_rate=mutation_rate)
+
+        # Combine all history
+        full_history = pd.concat(self.history, ignore_index=True)
+
+        return full_history
+
+# ============================================================================
+# COMPREHENSIVE VISUALIZATION
+# ============================================================================
+
+class ComprehensiveVisualizer:
+    """Create all visualizations"""
+
+    def __init__(self, history_df, best_monad=None):
+        self.history = history_df
+        self.best_monad = best_monad
+        self.φ = (1 + np.sqrt(5)) / 2
+
+    def create_all_plots(self):
+        """Create comprehensive visualization dashboard"""
+        fig = plt.figure(figsize=(24, 20))
+
+        # Create subplot grid
+        gs = fig.add_gridspec(5, 4, hspace=0.3, wspace=0.3)
+
+        # Plot 1: Convergence to φ
+        ax1 = fig.add_subplot(gs[0, 0])
+        self._plot_phi_convergence(ax1)
+
+        # Plot 2: Correlation evolution
+        ax2 = fig.add_subplot(gs[0, 1])
+        self._plot_correlation_evolution(ax2)
+
+        # Plot 3: Fitness components
+        ax3 = fig.add_subplot(gs[0, 2])
+        self._plot_fitness_components(ax3)
+
+        # Plot 4: Parameter space
+        ax4 = fig.add_subplot(gs[0, 3])
+        self._plot_parameter_space(ax4)
+
+        # Plot 5: Correlation matrix heatmap
+        ax5 = fig.add_subplot(gs[1, 0])
+        self._plot_correlation_matrix(ax5)
+
+        # Plot 6: Mutual information heatmap
+        ax6 = fig.add_subplot(gs[1, 1])
+        self._plot_mutual_information(ax6)
+
+        # Plot 7: Time series
+        ax7 = fig.add_subplot(gs[1, 2])
+        self._plot_time_series(ax7)
+
+        # Plot 8: Phase space
+        ax8 = fig.add_subplot(gs[1, 3])
+        self._plot_phase_space(ax8)
+
+        # Plot 9: Power spectrum
+        ax9 = fig.add_subplot(gs[2, 0])
+        self._plot_power_spectrum(ax9)
+
+        # Plot 10: Spectrogram
+        ax10 = fig.add_subplot(gs[2, 1])
+        self._plot_spectrogram(ax10)
+
+        # Plot 11: Lyapunov analysis
+        ax11 = fig.add_subplot(gs[2, 2])
+        self._plot_lyapunov_analysis(ax11)
+
+        # Plot 12: Fractal analysis
+        ax12 = fig.add_subplot(gs[2, 3])
+        self._plot_fractal_analysis(ax12)
+
+        # Plot 13: Consciousness landscape
+        ax13 = fig.add_subplot(gs[3, :2])
+        self._plot_consciousness_landscape(ax13)
+
+        # Plot 14: Pareto frontier
+        ax14 = fig.add_subplot(gs[3, 2:])
+        self._plot_pareto_frontier(ax14)
+
+        # Plot 15: 3D parameter landscape
+        ax15 = fig.add_subplot(gs[4, :2], projection='3d')
+        self._plot_3d_landscape(ax15)
+
+        # Plot 16: Metrics correlation heatmap
+        ax16 = fig.add_subplot(gs[4, 2:])
+        self._plot_metrics_correlation(ax16)
+
+        plt.suptitle("HERMETIC MONAD: Consciousness as Correlation Analysis",
+                    fontsize=18, fontweight='bold', y=0.98)
+
+        return fig
+
+    def _plot_phi_convergence(self, ax):
+        """Plot α/β ratio convergence to φ"""
+        gen_mean = self.history.groupby('generation')['α/β'].mean()
+        gen_std = self.history.groupby('generation')['α/β'].std()
+
+        ax.plot(gen_mean.index, gen_mean.values, 'r-', linewidth=2.5, label='Mean α/β')
+        ax.fill_between(gen_mean.index, gen_mean - gen_std, gen_mean + gen_std,
+                       alpha=0.3, color='red')
+        ax.axhline(y=self.φ, color='gold', linestyle='--', linewidth=2,
+                  label=f'φ = {self.φ:.6f}')
+
+        ax.set_xlabel('Generation', fontsize=10)
+        ax.set_ylabel('α/β Ratio', fontsize=10)
+        ax.set_title('Convergence to Golden Ratio φ', fontsize=12, fontweight='bold')
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.2)
+
+        # Add statistics
+        final_gen = self.history['generation'].max()
+        final_ratio = self.history[self.history['generation'] == final_gen]['α/β'].mean()
+        phi_dist = abs(final_ratio - self.φ)
+
+        ax.text(0.02, 0.98, f'Final: {final_ratio:.6f}\nΔφ: {phi_dist:.6f}',
+                transform=ax.transAxes, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='black', alpha=0.7),
+                fontsize=9)
+
+    def _plot_correlation_evolution(self, ax):
+        """Plot correlation evolution"""
+        corr_mean = self.history.groupby('generation')['correlation'].mean()
+        corr_std = self.history.groupby('generation')['correlation'].std()
+
+        ax.plot(corr_mean.index, corr_mean.values, 'c-', linewidth=2.5, label='Mean Correlation')
+        ax.fill_between(corr_mean.index, corr_mean - corr_std, corr_mean + corr_std,
+                       alpha=0.3, color='cyan')
+        ax.axhline(y=0.8936, color='lime', linestyle='--', linewidth=2,
+                  label='Target: 0.8936')
+
+        ax.set_xlabel('Generation', fontsize=10)
+        ax.set_ylabel('Cross-scale Correlation', fontsize=10)
+        ax.set_title('Correlation Evolution', fontsize=12, fontweight='bold')
+        ax.set_ylim([0.7, 1.0])
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.2)
+
+        # Add statistics
+        final_corr = corr_mean.iloc[-1]
+        ax.text(0.02, 0.98, f'Final: {final_corr:.4f}',
+                transform=ax.transAxes, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='black', alpha=0.7),
+                fontsize=9)
+
+    def _plot_fitness_components(self, ax):
+        """Plot evolution of fitness components"""
+        components = ['consciousness', 'phi_proximity', 'organization']
+        colors = ['#FF6B6B', '#4ECDC4', '#FFE66D']
+
+        for comp, color in zip(components, colors):
+            comp_mean = self.history.groupby('generation')[comp].mean()
+            ax.plot(comp_mean.index, comp_mean.values, color=color,
+                   linewidth=2, label=comp.replace('_', ' ').title())
+
+        ax.set_xlabel('Generation', fontsize=10)
+        ax.set_ylabel('Component Value', fontsize=10)
+        ax.set_title('Fitness Components Evolution (0.43:0.43:0.14)',
+                    fontsize=12, fontweight='bold')
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.2)
+
+    def _plot_parameter_space(self, ax):
+        """Plot α vs β parameter space"""
+        # Color by generation
+        generations = sorted(self.history['generation'].unique())
+        cmap = plt.cm.viridis
+        colors = cmap(np.linspace(0, 1, len(generations)))
+
+        for gen, color in zip(generations, colors):
+            if gen % 20 == 0 or gen == generations[-1]:  # Plot every 20th generation
+                gen_data = self.history[self.history['generation'] == gen]
+                ax.scatter(gen_data['α'], gen_data['β'], alpha=0.7,
+                          s=20, color=color, label=f'Gen {gen}')
+
+        # Add φ line: α/β = φ => β = α/φ
+        α_range = np.linspace(0.15, 0.25, 100)
+        β_phi = α_range / self.φ
+        ax.plot(α_range, β_phi, 'gold', linestyle='--', linewidth=2,
+               label=f'α/β = φ', alpha=0.8)
+
+        ax.set_xlabel('α', fontsize=10)
+        ax.set_ylabel('β', fontsize=10)
+        ax.set_title('Parameter Space Evolution', fontsize=12, fontweight='bold')
+        ax.legend(fontsize=8, loc='upper left')
+        ax.grid(True, alpha=0.2)
+
+    def _plot_correlation_matrix(self, ax):
+        """Plot correlation matrix heatmap"""
+        if self.best_monad is None:
+            ax.text(0.5, 0.5, 'No monad data', ha='center', va='center')
+            return
+
+        metrics = self.best_monad.compute_metrics()
+        corr_matrix = metrics['corr_matrix']
+
+        im = ax.imshow(corr_matrix, cmap='RdBu_r', vmin=-1, vmax=1)
+        ax.set_title('Correlation Matrix', fontsize=12, fontweight='bold')
+        ax.set_xlabel('Level')
+        ax.set_ylabel('Level')
+
+        # Add colorbar
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.1)
+        plt.colorbar(im, cax=cax)
+
+        # Add correlation value
+        mean_corr = metrics['correlation']
+        ax.text(0.02, 0.98, f'Mean: {mean_corr:.4f}',
+                transform=ax.transAxes, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='black', alpha=0.7),
+                fontsize=9)
+
+    def _plot_mutual_information(self, ax):
+        """Plot mutual information matrix"""
+        if self.best_monad is None:
+            ax.text(0.5, 0.5, 'No monad data', ha='center', va='center')
+            return
+
+        metrics = self.best_monad.compute_metrics()
+        mi_matrix = metrics['mi_matrix']
+
+        im = ax.imshow(mi_matrix, cmap='viridis')
+        ax.set_title('Mutual Information Matrix', fontsize=12, fontweight='bold')
+        ax.set_xlabel('Level')
+        ax.set_ylabel('Level')
+
+        # Add colorbar
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.1)
+        plt.colorbar(im, cax=cax)
+
+        # Add total MI
+        total_mi = np.sum(mi_matrix) / 2.0
+        ax.text(0.02, 0.98, f'Total MI: {total_mi:.3f}',
+                transform=ax.transAxes, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='black', alpha=0.7),
+                fontsize=9)
+
+    def _plot_time_series(self, ax):
+        """Plot time series of levels"""
+        if self.best_monad is None:
+            ax.text(0.5, 0.5, 'No monad data', ha='center', va='center')
+            return
+
+        metrics = self.best_monad.compute_metrics()
+        H = metrics['H']
+
+        for i in range(min(5, H.shape[1])):  # Plot first 5 levels
+            ax.plot(H[:, i] + i * 0.2, alpha=0.8, linewidth=1,
+                   label=f'Level {i+1}')
+
+        ax.set_xlabel('Time Step', fontsize=10)
+        ax.set_ylabel('Value (offset)', fontsize=10)
+        ax.set_title('Time Series of Levels', fontsize=12, fontweight='bold')
+        ax.legend(fontsize=8)
+        ax.grid(True, alpha=0.2)
+
+    def _plot_phase_space(self, ax):
+        """Plot 2D phase space of two levels"""
+        if self.best_monad is None:
+            ax.text(0.5, 0.5, 'No monad data', ha='center', va='center')
+            return
+
+        metrics = self.best_monad.compute_metrics()
+        H = metrics['H']
+
+        if H.shape[1] >= 2:
+            # Use first two levels
+            x = H[:, 0]
+            y = H[:, 1]
+
+            # Create density plot
+            hb = ax.hexbin(x, y, gridsize=50, cmap='plasma', bins='log')
+            ax.set_xlabel('Level 1', fontsize=10)
+            ax.set_ylabel('Level 2', fontsize=10)
+            ax.set_title('Phase Space (Level 1 vs Level 2)', fontsize=12, fontweight='bold')
+
+            # Add colorbar
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.1)
+            plt.colorbar(hb, cax=cax)
+        else:
+            ax.text(0.5, 0.5, 'Need at least 2 levels', ha='center', va='center')
+
+    def _plot_power_spectrum(self, ax):
+        """Plot power spectrum"""
+        if self.best_monad is None:
+            ax.text(0.5, 0.5, 'No monad data', ha='center', va='center')
+            return
+
+        metrics = self.best_monad.compute_metrics()
+        signal_ts = metrics['signal_ts']
+
+        freqs, psd = periodogram(signal_ts, fs=1.0)
+
+        ax.loglog(freqs[1:], psd[1:], 'b-', linewidth=1.5)
+        ax.set_xlabel('Frequency (Hz)', fontsize=10)
+        ax.set_ylabel('Power Spectral Density', fontsize=10)
+        ax.set_title('Power Spectrum', fontsize=12, fontweight='bold')
+        ax.grid(True, alpha=0.2, which='both')
+
+        # Add 1/f line for reference
+        if len(freqs) > 5:
+            x_fit = np.log(freqs[5:20])
+            y_fit = np.log(psd[5:20])
+            coeffs = np.polyfit(x_fit, y_fit, 1)
+            slope = coeffs[0]
+
+            ax.text(0.02, 0.98, f'Slope: {slope:.3f}',
+                    transform=ax.transAxes, verticalalignment='top',
+                    bbox=dict(boxstyle='round', facecolor='black', alpha=0.7),
+                    fontsize=9)
+
+    def _plot_spectrogram(self, ax):
+        """Plot spectrogram"""
+        if self.best_monad is None:
+            ax.text(0.5, 0.5, 'No monad data', ha='center', va='center')
+            return
+
+        metrics = self.best_monad.compute_metrics()
+        signal_ts = metrics['signal_ts']
+
+        f, t, Sxx = spectrogram(signal_ts, fs=1.0, nperseg=256, noverlap=128)
+
+        im = ax.pcolormesh(t, f, 10 * np.log10(Sxx + 1e-10),
+                          shading='gouraud', cmap='hot')
+        ax.set_ylabel('Frequency (Hz)', fontsize=10)
+        ax.set_xlabel('Time', fontsize=10)
+        ax.set_title('Spectrogram', fontsize=12, fontweight='bold')
+
+        # Add colorbar
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.1)
+        plt.colorbar(im, cax=cax, label='dB')
+
+    def _plot_lyapunov_analysis(self, ax):
+        """Plot Lyapunov exponent analysis"""
+        if self.best_monad is None:
+            ax.text(0.5, 0.5, 'No monad data', ha='center', va='center')
+            return
+
+        metrics = self.best_monad.compute_metrics()
+        lyapunov = metrics['lyapunov']
+
+        # Create visualization
+        theta = np.linspace(0, 2*np.pi, 100)
+
+        # Circle representing stability region
+        circle = Ellipse((0.5, 0.5), 1.0, 1.0, angle=0,
+                        fill=False, color='gray', linestyle='--', alpha=0.5)
+        ax.add_patch(circle)
+
+        # Arrow indicating Lyapunov exponent
+        angle = np.pi * (lyapunov + 1)  # Map to 0-2π
+        length = 0.4 * (1 + abs(lyapunov))
+
+        dx = length * np.cos(angle)
+        dy = length * np.sin(angle)
+
+        ax.arrow(0.5, 0.5, dx, dy, head_width=0.05, head_length=0.05,
+                fc='red', ec='red', alpha=0.8)
+
+        ax.set_xlim([0, 1])
+        ax.set_ylim([0, 1])
+        ax.set_aspect('equal')
+        ax.set_title(f'Lyapunov Exponent: {lyapunov:.4f}',
+                    fontsize=12, fontweight='bold')
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+        # Add interpretation
+        if lyapunov > 0:
+            interpretation = 'Chaotic'
+            color = 'red'
+        elif lyapunov < 0:
+            interpretation = 'Stable'
+            color = 'green'
+        else:
+            interpretation = 'Neutral'
+            color = 'yellow'
+
+        ax.text(0.5, 0.1, interpretation, ha='center', color=color,
+                fontweight='bold', fontsize=11,
+                bbox=dict(boxstyle='round', facecolor='black', alpha=0.7))
+
+    def _plot_fractal_analysis(self, ax):
+        """Plot fractal dimension analysis"""
+        if self.best_monad is None:
+            ax.text(0.5, 0.5, 'No monad data', ha='center', va='center')
+            return
+
+        metrics = self.best_monad.compute_metrics()
+        fractal_dim = metrics['fractal_dim']
+
+        # Generate Koch snowflake fractal for visualization
+        def koch_snowflake(order, scale=10):
+            if order == 0:
+                return [(0, 0), (scale, 0)]
+            else:
+                points = koch_snowflake(order-1, scale)
+                new_points = []
+                for i in range(len(points)-1):
+                    x1, y1 = points[i]
+                    x2, y2 = points[i+1]
+
+                    # Add points for Koch curve
+                    dx, dy = x2 - x1, y2 - y1
+                    new_points.append((x1, y1))
+                    new_points.append((x1 + dx/3, y1 + dy/3))
+                    new_points.append((x1 + dx/2 - dy*np.sqrt(3)/6,
+                                      y1 + dy/2 + dx*np.sqrt(3)/6))
+                    new_points.append((x1 + 2*dx/3, y1 + 2*dy/3))
+                new_points.append(points[-1])
+                return new_points
+
+        # Plot fractal visualization
+        order = min(4, int(fractal_dim * 2))  # Scale order by fractal dimension
+        points = koch_snowflake(order, scale=8)
+        x_vals, y_vals = zip(*points)
+
+        ax.plot(x_vals, y_vals, 'w-', linewidth=1, alpha=0.8)
+        ax.fill(x_vals, y_vals, alpha=0.3, color='cyan')
+
+        ax.set_xlim([-1, 9])
+        ax.set_ylim([-1, 9])
+        ax.set_aspect('equal')
+        ax.set_title(f'Fractal Dimension: {fractal_dim:.3f}',
+                    fontsize=12, fontweight='bold')
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+        # Add interpretation
+        if fractal_dim > 1.5:
+            interpretation = 'Complex'
+            color = 'cyan'
+        elif fractal_dim > 1.2:
+            interpretation = 'Structured'
+            color = 'green'
+        else:
+            interpretation = 'Simple'
+            color = 'yellow'
+
+        ax.text(4, -0.5, interpretation, ha='center', color=color,
+                fontweight='bold', fontsize=11,
+                bbox=dict(boxstyle='round', facecolor='black', alpha=0.7))
+
+    def _plot_consciousness_landscape(self, ax):
+        """Plot 2D consciousness landscape"""
+        # Sample parameter space
+        α_grid = np.linspace(0.18, 0.24, 30)
+        β_grid = np.linspace(0.11, 0.15, 30)
+        α_mesh, β_mesh = np.meshgrid(α_grid, β_grid)
+
+        # Quick evaluation function
+        def quick_eval(α, β):
+            monad = OptimizedLivingMonad(N_levels=5)
+            monad.α = α
+            monad.β = β
+            monad.γ = 1.194898
+            monad.evolve(steps=300, burn_in=100)
+            metrics = monad.compute_metrics(window=100)
+
+            # Apply 0.43, 0.43, 0.14 weighting
+            consciousness = metrics['consciousness'] / 5.0
+            phi_proximity = metrics['phi_proximity']
+            organization = metrics['organization']
+
+            return (consciousness * 0.43 +
+                    phi_proximity * 0.43 +
+                    organization * 0.14)
+
+        # Compute landscape
+        print("Computing consciousness landscape...")
+        fitness_grid = np.zeros_like(α_mesh)
+        for i in range(len(α_grid)):
+            for j in range(len(β_grid)):
+                fitness_grid[j, i] = quick_eval(α_mesh[j, i], β_mesh[j, i])
+
+        # Plot contour
+        contour = ax.contourf(α_mesh, β_mesh, fitness_grid, levels=15, cmap='viridis')
+
+        # Add φ line
+        β_phi = α_grid / self.φ
+        ax.plot(α_grid, β_phi, 'gold', linestyle='--', linewidth=2, label='α/β = φ')
+
+        # Mark best point from evolution
+        final_gen = self.history[self.history['generation'] == self.history['generation'].max()]
+        best_idx = final_gen['fitness'].idxmax()
+        best_α = final_gen.loc[best_idx, 'α']
+        best_β = final_gen.loc[best_idx, 'β']
+        ax.plot(best_α, best_β, 'r*', markersize=15, label='Best evolved')
+
+        ax.set_xlabel('α', fontsize=10)
+        ax.set_ylabel('β', fontsize=10)
+        ax.set_title('Consciousness Landscape (γ=1.194898)', fontsize=12, fontweight='bold')
+        ax.legend(fontsize=9)
+
+        # Add colorbar
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.1)
+        plt.colorbar(contour, cax=cax, label='Fitness')
+
+    def _plot_pareto_frontier(self, ax):
+        """Plot Pareto frontier between correlation and φ-proximity"""
+        final_gen = self.history[self.history['generation'] == self.history['generation'].max()]
+
+        if len(final_gen) < 3:
+            ax.text(0.5, 0.5, 'Not enough points', ha='center', va='center')
+            return
+
+        # Extract objectives
+        correlation = final_gen['correlation'].values
+        phi_proximity = final_gen['phi_proximity'].values
+
+        # Find Pareto frontier
+        points = np.column_stack([correlation, phi_proximity])
+
+        # Simple Pareto frontier detection
+        is_pareto = np.ones(len(points), dtype=bool)
+        for i, point in enumerate(points):
+            if is_pareto[i]:
+                # Keep if no other point dominates it
+                for j, other in enumerate(points):
+                    if i != j and is_pareto[j]:
+                        if (other[0] >= point[0] and other[1] >= point[1]):
+                            is_pareto[i] = False
+                            break
+
+        pareto_points = points[is_pareto]
+        if len(pareto_points) > 0:
+            pareto_points = pareto_points[np.argsort(pareto_points[:, 0])]
+
+        # Plot all points
+        scatter = ax.scatter(correlation, phi_proximity,
+                           c=final_gen['fitness'], cmap='viridis',
+                           s=50, alpha=0.7, edgecolors='white', linewidth=0.5)
+
+        # Plot Pareto frontier
+        if len(pareto_points) > 1:
+            ax.plot(pareto_points[:, 0], pareto_points[:, 1], 'r-',
+                   linewidth=2, alpha=0.8, label='Pareto Frontier')
+
+        # Mark ideal point
+        ax.plot(0.8936, 1.0, 'g*', markersize=20, label='Ideal (0.8936, 1.0)')
+
+        ax.set_xlabel('Correlation', fontsize=10)
+        ax.set_ylabel('φ-Proximity', fontsize=10)
+        ax.set_title('Pareto Frontier: Correlation vs φ-Proximity',
+                    fontsize=12, fontweight='bold')
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.2)
+
+        # Add colorbar
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.1)
+        plt.colorbar(scatter, cax=cax, label='Fitness')
+
+    def _plot_3d_landscape(self, ax):
+        """Plot 3D landscape of α, β, fitness"""
+        # Use a subset of data for clarity
+        subset = self.history[self.history['generation'] % 5 == 0]
+
+        if len(subset) < 10:
+            subset = self.history
+
+        # Create 3D scatter
+        scatter = ax.scatter(subset['α'], subset['β'], subset['fitness'],
+                           c=subset['consciousness'], cmap='viridis',
+                           s=30, alpha=0.8, depthshade=True)
+
+        # Add φ surface: β = α/φ
+        α_range = np.linspace(subset['α'].min(), subset['α'].max(), 20)
+        β_phi = α_range / self.φ
+        fitness_range = np.linspace(subset['fitness'].min(), subset['fitness'].max(), 20)
+
+        # Create meshgrid for surface
+        α_mesh, fitness_mesh = np.meshgrid(α_range, fitness_range)
+        β_mesh = α_mesh / self.φ
+
+        # Plot φ surface
+        ax.plot_surface(α_mesh, β_mesh, fitness_mesh, alpha=0.2,
+                       color='gold', edgecolor='none')
+
+        ax.set_xlabel('α', fontsize=9)
+        ax.set_ylabel('β', fontsize=9)
+        ax.set_zlabel('Fitness', fontsize=9)
+        ax.set_title('3D Fitness Landscape', fontsize=12, fontweight='bold')
+
+        # Add colorbar
+        plt.colorbar(scatter, ax=ax, shrink=0.5, aspect=10, label='Consciousness')
+
+    def _plot_metrics_correlation(self, ax):
+        """Plot correlation heatmap between all metrics"""
+        metrics_to_plot = ['consciousness', 'correlation', 'phi_proximity',
+                          'organization', 'coherence', 'lyapunov', 'fitness']
+
+        # Extract metrics from final generation
+        final_gen = self.history[self.history['generation'] == self.history['generation'].max()]
+
+        if len(final_gen) < 5:
+            ax.text(0.5, 0.5, 'Not enough data', ha='center', va='center')
+            return
+
+        data = final_gen[metrics_to_plot]
+        corr_matrix = data.corr()
+
+        # Plot heatmap
+        im = ax.imshow(corr_matrix, cmap='coolwarm', vmin=-1, vmax=1)
+
+        # Add text annotations
+        for i in range(len(metrics_to_plot)):
+            for j in range(len(metrics_to_plot)):
+                text = ax.text(j, i, f'{corr_matrix.iloc[i, j]:.2f}',
+                              ha="center", va="center", color="w", fontsize=8)
+
+        ax.set_xticks(range(len(metrics_to_plot)))
+        ax.set_yticks(range(len(metrics_to_plot)))
+        ax.set_xticklabels([m[:8] for m in metrics_to_plot], rotation=45, ha='right')
+        ax.set_yticklabels([m[:8] for m in metrics_to_plot])
+        ax.set_title('Metrics Correlation Matrix', fontsize=12, fontweight='bold')
+
+        # Add colorbar
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.1)
+        plt.colorbar(im, cax=cax)
+
+# ============================================================================
+# MAIN EXECUTION
+# ============================================================================
+
+def main():
+    """Main execution function"""
+    print("="*80)
+    print("HERMETIC MONAD: Consciousness as Correlation")
+    print("Integrated Analysis with 0.43:0.43:0.14 Weighting")
+    print("="*80)
+
+    # Step 1: Run evolutionary optimization
+    print("\n[1/3] Running evolutionary optimization...")
+    evolution = ConsciousEvolution(pop_size=30, seed=42)  # Reduced population for speed
+    history_df = evolution.run_evolution(generations=40)  # Reduced generations
+
+    # Step 2: Get best individual
+    print("\n[2/3] Analyzing best individual...")
+    final_gen = history_df[history_df['generation'] == history_df['generation'].max()]
+    best_idx = final_gen['fitness'].idxmax()
+    best_params = final_gen.loc[best_idx]
+
+    # Create best monad
+    best_monad = OptimizedLivingMonad(N_levels=5)
+    best_monad.α = best_params['α']
+    best_monad.β = best_params['β']
+    best_monad.γ = best_params['γ'] if 'γ' in best_params else 1.194898
+
+    # Evolve with more steps for detailed analysis
+    print("    Evolving best monad for detailed analysis...")
+    best_monad.evolve(steps=2000, burn_in=500)
+
+    # Step 3: Create visualizations
+    print("\n[3/3] Creating comprehensive visualizations...")
+    visualizer = ComprehensiveVisualizer(history_df, best_monad)
+    fig = visualizer.create_all_plots()
+
+    # Step 4: Display summary statistics
+    print("\n" + "="*80)
+    print("SUMMARY STATISTICS")
+    print("="*80)
+
+    metrics = best_monad.compute_metrics()
+
+    print(f"\nBest Individual Parameters:")
+    print(f"  α = {best_params['α']:.6f}")
+    print(f"  β = {best_params['β']:.6f}")
+    print(f"  γ = {best_params.get('γ', 1.194898):.6f}")
+    print(f"  α/β = {best_params['α/β']:.6f}")
+    print(f"  Distance from φ: {best_params['phi_distance']:.6f}")
+
+    print(f"\nConsciousness Metrics:")
+    print(f"  Correlation: {metrics['correlation']:.4f}")
+    print(f"  Consciousness Score: {metrics['consciousness']:.2f}/5.0")
+    print(f"  φ-Proximity: {metrics['phi_proximity']:.4f}")
+    print(f"  Organization: {metrics['organization']:.4f}")
+    print(f"  Integrated Information (Φ): {metrics['phi_integration']:.4f}")
+
+    print(f"\nDynamical Metrics:")
+    print(f"  Lyapunov Exponent: {metrics['lyapunov']:.4f}")
+    print(f"  Phase Coherence: {metrics['coherence']:.4f}")
+    print(f"  Fractal Dimension: {metrics['fractal_dim']:.3f}")
+    print(f"  Spectral Entropy: {metrics['spectral_entropy']:.4f}")
+
+    print(f"\nEvolution Results:")
+    print(f"  Best Fitness: {best_params['fitness']:.4f}")
+    print(f"  Mean Final Fitness: {final_gen['fitness'].mean():.4f}")
+    print(f"  Mean Final Correlation: {final_gen['correlation'].mean():.4f}")
+    print(f"  Mean Final φ-Distance: {final_gen['phi_distance'].mean():.6f}")
+
+    # Statistical test for φ-attraction
+    final_ratios = final_gen['α/β'].values
+    t_stat, p_value = stats.ttest_1samp(final_ratios, visualizer.φ)
+    print(f"\nStatistical Test for φ-Attraction:")
+    print(f"  t-statistic: {t_stat:.4f}")
+    print(f"  p-value: {p_value:.6f}")
+
+    if p_value > 0.05:
+        print("  Result: NOT significantly different from φ (p > 0.05)")
+    else:
+        print(f"  Result: Significantly different from φ (p = {p_value:.4f})")
+
+    # Save results
+    import datetime
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    history_df.to_csv(f'hermetic_monad_results_{timestamp}.csv', index=False)
+    fig.savefig(f'hermetic_monad_analysis_{timestamp}.png', dpi=150, bbox_inches='tight')
+
+    print(f"\nResults saved:")
+    print(f"  CSV: hermetic_monad_results_{timestamp}.csv")
+    print(f"  PNG: hermetic_monad_analysis_{timestamp}.png")
+
+    plt.show()
+
+# ============================================================================
+# QUICK TEST FUNCTION
+# ============================================================================
+
+def quick_test():
+    """Quick test function for verification"""
+    print("Running quick test...")
+
+    # Test canonical monad
+    monad = OptimizedLivingMonad(N_levels=5, seed=42)
+    monad.evolve(steps=1000, burn_in=300)
+    metrics = monad.compute_metrics()
+
+    print(f"\nCanonical Monad Test:")
+    print(f"  Correlation: {metrics['correlation']:.4f}")
+    print(f"  Consciousness: {metrics['consciousness']:.2f}/5.0")
+    print(f"  α/β: {monad.α/monad.β:.6f}")
+    print(f"  Distance from φ: {abs(monad.α/monad.β - monad.φ):.6f}")
+
+    # Test evolution briefly
+    evolution = ConsciousEvolution(pop_size=10, seed=42)
+    history = evolution.run_evolution(generations=5)
+
+    print(f"\nEvolution Test (5 generations):")
+    print(f"  Best fitness: {history['fitness'].max():.4f}")
+    print(f"  Best correlation: {history['correlation'].max():.4f}")
+
+# ============================================================================
+# EXECUTION
+# ============================================================================
+
+if __name__ == "__main__":
+    main()
+     
